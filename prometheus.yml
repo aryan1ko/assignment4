@@ -1,0 +1,12 @@
+global:
+  scrape_interval: 5s
+  evaluation_interval: 5s
+
+scrape_configs:
+  # Pull the metrics of the greetings application through the NodePort of its
+  # Service. Prometheus runs as a container on the "minikube" Docker network,
+  # so the Minikube node is reachable by its container name "minikube".
+  - job_name: "greetings"
+    metrics_path: /metrics
+    static_configs:
+      - targets: ["minikube:32767"]

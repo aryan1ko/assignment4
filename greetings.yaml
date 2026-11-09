@@ -5,7 +5,9 @@ metadata:
   labels:
     app: greetings
 spec:
-  replicas: 3
+  # One replica so that the counts Prometheus scrapes through the NodePort always
+  # come from the same Pod (each Pod keeps its own counter).
+  replicas: 1
   selector:
     matchLabels:
       app: greetings
@@ -62,10 +64,12 @@ data:
   filenames.txt: |
     application.py
     Dockerfile
-    build.sh
     requirements.txt
+    build.sh
     greetings.yaml
+    prometheus.yml
     README.txt
+    AI.txt
 ---
 apiVersion: v1
 kind: ServiceAccount
