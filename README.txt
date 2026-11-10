@@ -1,6 +1,12 @@
 name: Aryan Kondapally
 eid: avk639
-comments:
+comments: Minikube runs directly on the host (macOS, Docker Desktop driver), not
+inside the multipass VM, so the Prometheus container can reach the application's
+NodePort. The Service is NodePort on port 32767 and prometheus.yml scrapes
+minikube:32767 ("minikube" is the name of the Minikube node container on the
+minikube Docker network). The Deployment uses replicas: 1, because with more than
+one replica the NodePort would spread the scrapes across Pods that each keep their
+own counter, so the numbers in Prometheus would jump around.
 
 
 Setup
@@ -87,3 +93,40 @@ kubectl logs <pod-name-from-above-output>
 Delete application:
 -------------------
 kubectl delete -f greetings.yaml
+
+
+Run Prometheus as a Docker container on the minikube network (Terminal 2):
+--------------------------------------------------------------------------
+docker run -d --name prometheus --network minikube -p 9090:9090 \
+    -v ./prometheus.yml:/etc/prometheus/prometheus.yml prom/prometheus
+
+Run this from a terminal that is NOT connected to Minikube's Docker daemon, since
+Prometheus has to run on the host's Docker daemon to join the "minikube" network.
+
+
+Access Prometheus:
+------------------
+In a browser, open http://localhost:9090
+    - Status -> Target health: the "greetings" target
+      (http://minikube:32767/metrics) should be UP (green)
+    - Query -> type custom_request_count_total and hit Execute
+    - Switch to the Graph view and keep hitting the app endpoints; the counts per
+      endpoint go up as a time series.
+
+The counter is custom_request_count with an "endpoint" label, so there is one
+series per endpoint:
+    custom_request_count_total{endpoint="/"}
+    custom_request_count_total{endpoint="/greetings"}
+    custom_request_count_total{endpoint="/listcontents"}
+    custom_request_count_total{endpoint="/getk8sobjects"}
+
+(Prometheus client libraries add the "_total" suffix to counter names, which is why
+the metric is queried as custom_request_count_total.)
+
+The metrics can also be seen directly from the app:
+    curl $URL/metrics | grep custom_request_count
+
+
+Stop Prometheus:
+----------------
+docker rm -f prometheus

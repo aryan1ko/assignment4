@@ -1,0 +1,10 @@
+AI tool used: Claude Code (Claude Opus 5)
+
+Debugging prompts/questions:
+
+- Can you quickly check my implementation in application.py and point out any bugs
+
+- "eval $(minikube docker-env)" failed after I installed minikube on the host and ran
+ "minikube start". How do I get the Docker runtime so that I can build the image into Minikube's Docker daemon?
+
+- Asked Claude to review my application.py, greetings.yaml and prometheus.yml and fixed some bugs that were present
